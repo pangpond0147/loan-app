@@ -3,79 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loan iOS Style</title>
+<title>Loan Online iOS</title>
 
 <style>
 body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont;
-    background: linear-gradient(180deg, #f2f2f7, #e5e5ea);
+    font-family: -apple-system;
+    background: #f2f2f7;
 }
-
-/* HEADER */
 .header {
     padding: 20px;
     font-size: 28px;
     font-weight: bold;
 }
-
-/* CARD */
 .card {
     margin: 15px;
     padding: 20px;
-    border-radius: 25px;
-    backdrop-filter: blur(30px);
-    background: rgba(255,255,255,0.7);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 20px;
+    background: white;
 }
-
-/* BALANCE */
-.balance {
-    font-size: 32px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-/* INPUT */
-input {
+input, button {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     margin-top: 10px;
-    border-radius: 15px;
+    border-radius: 12px;
     border: none;
-    background: #f2f2f7;
-    font-size: 16px;
 }
-
-/* BUTTON */
 button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 12px;
-    border-radius: 15px;
-    border: none;
     background: #007aff;
     color: white;
-    font-size: 16px;
-    font-weight: bold;
 }
-
-/* LIST */
 .item {
-    background: rgba(255,255,255,0.9);
-    padding: 15px;
-    border-radius: 20px;
-    margin-top: 10px;
-}
-
-/* ACTION */
-.actions {
-    margin-top: 8px;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
 }
 .actions button {
     width: auto;
-    padding: 6px 10px;
-    font-size: 13px;
     margin-right: 5px;
     background: #e5e5ea;
     color: black;
@@ -85,115 +48,96 @@ button {
 
 <body>
 
-<div class="header">💰 Loan</div>
+<div class="header">💰 Loan Online</div>
 
 <div class="card">
     <div>ยอดคงเหลือ</div>
-    <div class="balance" id="balance">0 บาท</div>
+    <h2 id="balance">0 บาท</h2>
 
-    <input type="number" id="amount" placeholder="จำนวนเงิน">
-    <input type="date" id="date">
+    <input id="amount" type="number" placeholder="จำนวนเงิน">
+    <input id="date" type="date">
 
-    <button onclick="addOrUpdate()">บันทึก</button>
+    <button onclick="addData()">บันทึก</button>
 </div>
 
 <div class="card">
-    <div>รายการชำระ</div>
-    <div id="log"></div>
+    <div>รายการ</div>
+    <div id="list"></div>
 </div>
 
+<!-- Firebase (เวอร์ชันใช้ตรงได้) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
 <script>
-let data = JSON.parse(localStorage.getItem('loanData')) || [];
-let editIndex = null;
-const initialLoan = 100000;
+const firebaseConfig = {
+  apiKey: "AIzaSyCYH3hqw8Xm-2-JBMwCk8wzTmhvM4leFyk",
+  authDomain: "loan-100000bypond.firebaseapp.com",
+  projectId: "loan-100000bypond",
+  storageBucket: "loan-100000bypond.firebasestorage.app",
+  messagingSenderId: "790911699649",
+  appId: "1:790911699649:web:58e55bf9cd2fffbb8ea240"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 const PASSWORD = "006200";
+
+/* ADD */
+function addData() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const date = document.getElementById('date').value;
+
+    if (!amount || !date) return alert("กรอกให้ครบ");
+
+    db.collection("loan").add({ amount, date });
+
+    document.getElementById('amount').value = '';
+}
 
 /* PASSWORD */
 function checkPassword() {
-    const input = prompt("กรอกรหัส:");
+    const input = prompt("ใส่รหัส:");
     if (input === PASSWORD) return true;
     alert("รหัสผิด");
     return false;
 }
 
-/* CALC */
-function calculateBalance() {
-    let total = data.reduce((sum, item) => sum + item.amount, 0);
-    return initialLoan - total;
+/* DELETE */
+function deleteItem(id) {
+    if (!checkPassword()) return;
+    db.collection("loan").doc(id).delete();
 }
 
-/* RENDER */
-function render() {
-    const log = document.getElementById('log');
-    log.innerHTML = '';
+/* RENDER REALTIME */
+db.collection("loan").orderBy("date", "desc")
+.onSnapshot(snapshot => {
 
-    data.slice().reverse().forEach((item, i) => {
-        const index = data.length - 1 - i;
+    let total = 0;
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        total += data.amount;
 
         const div = document.createElement('div');
         div.className = 'item';
 
         div.innerHTML = `
-        📅 ${item.date}<br>
-        💸 ${item.amount.toLocaleString()} บาท
+        📅 ${data.date}<br>
+        💸 ${data.amount.toLocaleString()} บาท
         <div class="actions">
-            <button onclick="editItem(${index})">แก้ไข</button>
-            <button onclick="deleteItem(${index})">ลบ</button>
+            <button onclick="deleteItem('${doc.id}')">ลบ</button>
         </div>`;
 
-        log.appendChild(div);
+        list.appendChild(div);
     });
 
     document.getElementById('balance').innerText =
-        calculateBalance().toLocaleString() + " บาท";
-
-    localStorage.setItem('loanData', JSON.stringify(data));
-}
-
-/* ADD / UPDATE */
-function addOrUpdate() {
-    const amount = parseFloat(document.getElementById('amount').value);
-    const date = document.getElementById('date').value;
-
-    if (!amount || !date) {
-        alert("กรอกข้อมูลให้ครบ");
-        return;
-    }
-
-    if (editIndex !== null) {
-        data[editIndex] = { amount, date };
-        editIndex = null;
-    } else {
-        data.push({ amount, date });
-    }
-
-    document.getElementById('amount').value = '';
-    document.getElementById('date').value = '';
-
-    render();
-}
-
-/* EDIT */
-function editItem(index) {
-    if (!checkPassword()) return;
-
-    const item = data[index];
-    document.getElementById('amount').value = item.amount;
-    document.getElementById('date').value = item.date;
-    editIndex = index;
-}
-
-/* DELETE */
-function deleteItem(index) {
-    if (!checkPassword()) return;
-
-    if (confirm("ลบรายการนี้?")) {
-        data.splice(index, 1);
-        render();
-    }
-}
-
-render();
+        (100000 - total).toLocaleString() + " บาท";
+});
 </script>
 
 </body>
