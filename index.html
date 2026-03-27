@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loan Online iOS</title>
+<title>Loan Online iOS Pro</title>
 
 <style>
 body {
@@ -11,17 +11,62 @@ body {
     font-family: -apple-system;
     background: #f2f2f7;
 }
+
+/* SPLASH SCREEN */
+.splash {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(180deg, #007aff, #5ac8fa);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 9999;
+    animation: fadeOut 1s ease 2s forwards;
+}
+
+.splash h1 {
+    font-size: 32px;
+    margin: 0;
+}
+
+.splash p {
+    margin-top: 10px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+@keyframes fadeOut {
+    to { opacity: 0; visibility: hidden; }
+}
+
 .header {
     padding: 20px;
     font-size: 28px;
     font-weight: bold;
+    animation: fadeIn 0.6s ease;
 }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px);} 
+    to { opacity: 1; transform: translateY(0);} 
+}
+
 .card {
     margin: 15px;
     padding: 20px;
     border-radius: 20px;
     background: white;
+    animation: cardPop 0.5s ease;
 }
+
+@keyframes cardPop {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
 input, button {
     width: 100%;
     padding: 12px;
@@ -29,26 +74,43 @@ input, button {
     border-radius: 12px;
     border: none;
 }
+
 button {
     background: #007aff;
     color: white;
 }
+
 .item {
-    padding: 10px;
+    padding: 12px;
     border-bottom: 1px solid #eee;
+    animation: fadeIn 0.4s ease;
 }
+
+.note {
+    font-size: 13px;
+    color: #666;
+    margin-top: 4px;
+}
+
 .actions button {
     width: auto;
     margin-right: 5px;
     background: #e5e5ea;
     color: black;
+    font-size: 12px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">💰 Loan Online</div>
+<!-- SPLASH -->
+<div class="splash">
+    <h1>💰 Loan App</h1>
+    <p>เว็บนี้สนับสนุนโดยคุณ ปอนด์</p>
+</div>
+
+<div class="header">💰 Loan Pro</div>
 
 <div class="card">
     <div>ยอดคงเหลือ</div>
@@ -56,6 +118,7 @@ button {
 
     <input id="amount" type="number" placeholder="จำนวนเงิน">
     <input id="date" type="date">
+    <input id="note" placeholder="บันทึกช่วยจำ">
 
     <button onclick="addData()">บันทึก</button>
 </div>
@@ -65,7 +128,6 @@ button {
     <div id="list"></div>
 </div>
 
-<!-- Firebase (เวอร์ชันใช้ตรงได้) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -84,19 +146,6 @@ const db = firebase.firestore();
 
 const PASSWORD = "006200";
 
-/* ADD */
-function addData() {
-    const amount = parseFloat(document.getElementById('amount').value);
-    const date = document.getElementById('date').value;
-
-    if (!amount || !date) return alert("กรอกให้ครบ");
-
-    db.collection("loan").add({ amount, date });
-
-    document.getElementById('amount').value = '';
-}
-
-/* PASSWORD */
 function checkPassword() {
     const input = prompt("ใส่รหัส:");
     if (input === PASSWORD) return true;
@@ -104,13 +153,25 @@ function checkPassword() {
     return false;
 }
 
-/* DELETE */
+function addData() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const date = document.getElementById('date').value;
+    const note = document.getElementById('note').value;
+
+    if (!amount || !date) return alert("กรอกให้ครบ");
+
+    db.collection("loan").add({ amount, date, note });
+
+    document.getElementById('amount').value = '';
+    document.getElementById('note').value = '';
+}
+
 function deleteItem(id) {
     if (!checkPassword()) return;
     db.collection("loan").doc(id).delete();
 }
 
-/* RENDER REALTIME */
+/* REALTIME */
 db.collection("loan").orderBy("date", "desc")
 .onSnapshot(snapshot => {
 
@@ -128,6 +189,7 @@ db.collection("loan").orderBy("date", "desc")
         div.innerHTML = `
         📅 ${data.date}<br>
         💸 ${data.amount.toLocaleString()} บาท
+        ${data.note ? `<div class="note">📝 ${data.note}</div>` : ''}
         <div class="actions">
             <button onclick="deleteItem('${doc.id}')">ลบ</button>
         </div>`;
