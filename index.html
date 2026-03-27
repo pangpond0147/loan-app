@@ -3,64 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Loan Calculator Pro</title>
+<title>Loan iOS Style</title>
+
 <style>
 body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, #dfe9f3, #ffffff);
+    font-family: -apple-system, BlinkMacSystemFont;
+    background: linear-gradient(180deg, #f2f2f7, #e5e5ea);
 }
-.container {
-    max-width: 420px;
-    margin: auto;
+
+/* HEADER */
+.header {
     padding: 20px;
+    font-size: 28px;
+    font-weight: bold;
 }
+
+/* CARD */
 .card {
-    backdrop-filter: blur(20px);
-    background: rgba(255,255,255,0.25);
-    border-radius: 25px;
+    margin: 15px;
     padding: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-radius: 25px;
+    backdrop-filter: blur(30px);
+    background: rgba(255,255,255,0.7);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
-h2 { text-align: center; }
-input, button {
+
+/* BALANCE */
+.balance {
+    font-size: 32px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* INPUT */
+input {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     margin-top: 10px;
     border-radius: 15px;
     border: none;
+    background: #f2f2f7;
     font-size: 16px;
 }
-input { background: rgba(255,255,255,0.6); }
-button { background: #007aff; color: white; font-weight: bold; }
-.log { margin-top: 15px; max-height: 300px; overflow-y: auto; }
-.item {
-    padding: 10px;
-    margin-top: 10px;
+
+/* BUTTON */
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
     border-radius: 15px;
-    background: rgba(255,255,255,0.5);
+    border: none;
+    background: #007aff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* LIST */
+.item {
+    background: rgba(255,255,255,0.9);
+    padding: 15px;
+    border-radius: 20px;
+    margin-top: 10px;
+}
+
+/* ACTION */
+.actions {
+    margin-top: 8px;
 }
 .actions button {
     width: auto;
-    margin-right: 5px;
     padding: 6px 10px;
-    font-size: 14px;
+    font-size: 13px;
+    margin-right: 5px;
+    background: #e5e5ea;
+    color: black;
 }
 </style>
 </head>
+
 <body>
 
-<div class="container">
+<div class="header">💰 Loan</div>
+
 <div class="card">
-<h2>💰 ระบบเงินกู้</h2>
-<p>ยอดคงเหลือ: <span id="balance">0</span> บาท</p>
+    <div>ยอดคงเหลือ</div>
+    <div class="balance" id="balance">0 บาท</div>
 
-<input type="number" id="amount" placeholder="จำนวนเงิน">
-<input type="date" id="date">
-<button onclick="addOrUpdate()">บันทึก</button>
+    <input type="number" id="amount" placeholder="จำนวนเงิน">
+    <input type="date" id="date">
 
-<div class="log" id="log"></div>
+    <button onclick="addOrUpdate()">บันทึก</button>
 </div>
+
+<div class="card">
+    <div>รายการชำระ</div>
+    <div id="log"></div>
 </div>
 
 <script>
@@ -69,45 +108,55 @@ let editIndex = null;
 const initialLoan = 100000;
 const PASSWORD = "006200";
 
+/* PASSWORD */
 function checkPassword() {
-    const input = prompt("กรอกรหัสก่อนทำรายการ:");
+    const input = prompt("กรอกรหัส:");
     if (input === PASSWORD) return true;
-    alert("รหัสไม่ถูกต้อง");
+    alert("รหัสผิด");
     return false;
 }
 
+/* CALC */
 function calculateBalance() {
-    let totalPaid = data.reduce((sum, item) => sum + item.amount, 0);
-    return initialLoan - totalPaid;
+    let total = data.reduce((sum, item) => sum + item.amount, 0);
+    return initialLoan - total;
 }
 
+/* RENDER */
 function render() {
     const log = document.getElementById('log');
     log.innerHTML = '';
 
-    data.forEach((item, index) => {
+    data.slice().reverse().forEach((item, i) => {
+        const index = data.length - 1 - i;
+
         const div = document.createElement('div');
         div.className = 'item';
+
         div.innerHTML = `
         📅 ${item.date}<br>
-        จ่าย: ${item.amount.toLocaleString()} บาท
+        💸 ${item.amount.toLocaleString()} บาท
         <div class="actions">
             <button onclick="editItem(${index})">แก้ไข</button>
             <button onclick="deleteItem(${index})">ลบ</button>
         </div>`;
+
         log.appendChild(div);
     });
 
-    document.getElementById('balance').innerText = calculateBalance().toLocaleString();
+    document.getElementById('balance').innerText =
+        calculateBalance().toLocaleString() + " บาท";
+
     localStorage.setItem('loanData', JSON.stringify(data));
 }
 
+/* ADD / UPDATE */
 function addOrUpdate() {
     const amount = parseFloat(document.getElementById('amount').value);
     const date = document.getElementById('date').value;
 
     if (!amount || !date) {
-        alert('กรอกข้อมูลให้ครบ');
+        alert("กรอกข้อมูลให้ครบ");
         return;
     }
 
@@ -124,6 +173,7 @@ function addOrUpdate() {
     render();
 }
 
+/* EDIT */
 function editItem(index) {
     if (!checkPassword()) return;
 
@@ -133,10 +183,11 @@ function editItem(index) {
     editIndex = index;
 }
 
+/* DELETE */
 function deleteItem(index) {
     if (!checkPassword()) return;
 
-    if (confirm('ลบรายการนี้?')) {
+    if (confirm("ลบรายการนี้?")) {
         data.splice(index, 1);
         render();
     }
