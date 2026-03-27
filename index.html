@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Calculator Pro</title>
+<style>
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #dfe9f3, #ffffff);
+}
+.container {
+    max-width: 420px;
+    margin: auto;
+    padding: 20px;
+}
+.card {
+    backdrop-filter: blur(20px);
+    background: rgba(255,255,255,0.25);
+    border-radius: 25px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+h2 { text-align: center; }
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 15px;
+    border: none;
+    font-size: 16px;
+}
+input { background: rgba(255,255,255,0.6); }
+button { background: #007aff; color: white; font-weight: bold; }
+.log { margin-top: 15px; max-height: 300px; overflow-y: auto; }
+.item {
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.5);
+}
+.actions button {
+    width: auto;
+    margin-right: 5px;
+    padding: 6px 10px;
+    font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="card">
+<h2>💰 ระบบเงินกู้</h2>
+<p>ยอดคงเหลือ: <span id="balance">0</span> บาท</p>
+
+<input type="number" id="amount" placeholder="จำนวนเงิน">
+<input type="date" id="date">
+<button onclick="addOrUpdate()">บันทึก</button>
+
+<div class="log" id="log"></div>
+</div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem('loanData')) || [];
+let editIndex = null;
+const initialLoan = 100000;
+
+function calculateBalance() {
+    let totalPaid = data.reduce((sum, item) => sum + item.amount, 0);
+    return initialLoan - totalPaid;
+}
+
+function render() {
+    const log = document.getElementById('log');
+    log.innerHTML = '';
+
+    data.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+        📅 ${item.date}<br>
+        จ่าย: ${item.amount.toLocaleString()} บาท
+        <div class="actions">
+            <button onclick="editItem(${index})">แก้ไข</button>
+            <button onclick="deleteItem(${index})">ลบ</button>
+        </div>`;
+        log.appendChild(div);
+    });
+
+    document.getElementById('balance').innerText = calculateBalance().toLocaleString();
+    localStorage.setItem('loanData', JSON.stringify(data));
+}
+
+function addOrUpdate() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const date = document.getElementById('date').value;
+
+    if (!amount || !date) {
+        alert('กรอกข้อมูลให้ครบ');
+        return;
+    }
+
+    if (editIndex !== null) {
+        data[editIndex] = { amount, date };
+        editIndex = null;
+    } else {
+        data.push({ amount, date });
+    }
+
+    document.getElementById('amount').value = '';
+    document.getElementById('date').value = '';
+
+    render();
+}
+
+function editItem(index) {
+    const item = data[index];
+    document.getElementById('amount').value = item.amount;
+    document.getElementById('date').value = item.date;
+    editIndex = index;
+}
+
+function deleteItem(index) {
+    if (confirm('ลบรายการนี้?')) {
+        data.splice(index, 1);
+        render();
+    }
+}
+
+render();
+</script>
+
+</body>
+</html>
