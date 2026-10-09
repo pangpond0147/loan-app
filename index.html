@@ -8,7 +8,7 @@
 <style>
 body {
     margin: 0;
-    font-family: -apple-system;
+    font-family: -apple-system, "Sarabun", sans-serif;
     background: #f2f2f7;
 }
 
@@ -135,72 +135,4 @@ button {
 const firebaseConfig = {
   apiKey: "AIzaSyCYH3hqw8Xm-2-JBMwCk8wzTmhvM4leFyk",
   authDomain: "loan-100000bypond.firebaseapp.com",
-  projectId: "loan-100000bypond",
-  storageBucket: "loan-100000bypond.firebasestorage.app",
-  messagingSenderId: "790911699649",
-  appId: "1:790911699649:web:58e55bf9cd2fffbb8ea240"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const PASSWORD = "006200";
-
-function checkPassword() {
-    const input = prompt("ใส่รหัส:");
-    if (input === PASSWORD) return true;
-    alert("รหัสผิด");
-    return false;
-}
-
-function addData() {
-    const amount = parseFloat(document.getElementById('amount').value);
-    const date = document.getElementById('date').value;
-    const note = document.getElementById('note').value;
-
-    if (!amount || !date) return alert("กรอกให้ครบ");
-
-    db.collection("loan").add({ amount, date, note });
-
-    document.getElementById('amount').value = '';
-    document.getElementById('note').value = '';
-}
-
-function deleteItem(id) {
-    if (!checkPassword()) return;
-    db.collection("loan").doc(id).delete();
-}
-
-/* REALTIME */
-db.collection("loan").orderBy("date", "desc")
-.onSnapshot(snapshot => {
-
-    let total = 0;
-    const list = document.getElementById('list');
-    list.innerHTML = '';
-
-    snapshot.forEach(doc => {
-        const data = doc.data();
-        total += data.amount;
-
-        const div = document.createElement('div');
-        div.className = 'item';
-
-        div.innerHTML = `
-        📅 ${data.date}<br>
-        💸 ${data.amount.toLocaleString()} บาท
-        ${data.note ? `<div class="note">📝 ${data.note}</div>` : ''}
-        <div class="actions">
-            <button onclick="deleteItem('${doc.id}')">ลบ</button>
-        </div>`;
-
-        list.appendChild(div);
-    });
-
-    document.getElementById('balance').innerText =
-        (100000 - total).toLocaleString() + " บาท";
-});
-</script>
-
-</body>
-</html>
+  projectId:
