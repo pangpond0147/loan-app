@@ -114,7 +114,7 @@ button {
 
 <div class="card">
     <div>ยอดคงเหลือ</div>
-    <h2 id="balance">0 บาท</h2>
+    <h2 id="balance">120,000 บาท</h2>
 
     <input id="amount" type="number" placeholder="จำนวนเงิน">
     <input id="date" type="date">
@@ -135,4 +135,17 @@ button {
 const firebaseConfig = {
   apiKey: "AIzaSyCYH3hqw8Xm-2-JBMwCk8wzTmhvM4leFyk",
   authDomain: "loan-100000bypond.firebaseapp.com",
-  projectId:
+  projectId: "loan-100000bypond",
+  storageBucket: "loan-100000bypond.firebasestorage.app",
+  messagingSenderId: "790911699649",
+  appId: "1:790911699649:web:58e55bf9cd2fffbb8ea240"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const PASSWORD = "006200";
+const TOTAL_DEBT = 120000; // <-- ยอดหนี้ทั้งหมด แก้ตรงนี้ที่เดียว
+
+function checkPassword() {
+    const input =
